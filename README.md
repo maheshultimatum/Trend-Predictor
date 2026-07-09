@@ -9,10 +9,10 @@ This project is a hands-off, automated data pipeline that predicts short-term ma
 ---
 
 ## 📊 Daily Market Insight
-- **Last Updated:** 2026-07-09 20:01:24 UTC
-- **NIFTY 50 Last Close:** 21,727.99
-- **Predicted Next Close:** 22,041.75
-- **Model Bias:** **🚀 BULLISH (UP)**
+- **Last Updated:** 2026-07-09 20:18:13 UTC
+- **NIFTY 50 Last Close:** 23,882.05
+- **Predicted Next Close:** 23,424.43
+- **Model Bias:** **📉 BEARISH (DOWN)**
 
 ### 📈 Current Trendline Plot
 ![Stock Trend](./trend_prediction.png)
