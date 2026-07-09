@@ -25,15 +25,16 @@ def get_stock_data():
     try:
         ticker = yf.Ticker("^NSEI")
         df = ticker.history(period="6m")
+        
         if df.empty:
-            raise ValueError("Yahoo Finance returned an empty DataFrame.")
+            raise ValueError("Yahoo Finance returned an empty DataFrame. The runner might be rate-limited.")
+            
         df = df.rename(columns={'Close': 'close'})
         return df.tail(100)
     except Exception as e:
-        print(f"Error fetching data from yfinance: {e}")
-        print("Falling back to simulated placeholder data for CI stability...")
-        dates = pd.date_range(end=datetime.datetime.now(), periods=100)
-        return pd.DataFrame({'close': np.sin(np.linspace(0, 10, 100)) * 500 + 22000}, index=dates)
+        print(f"CRITICAL ERROR fetching data from yfinance: {e}")
+        print("Stopping pipeline to prevent logging fake/stale data.")
+        sys.exit(1) # This forces the GitHub Action to fail and turn red
 
 
 def train_and_predict(df):
