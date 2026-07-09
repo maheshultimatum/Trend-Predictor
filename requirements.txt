@@ -1,0 +1,5 @@
+git+https://github.com/rongardF/tvdatafeed.git
+pandas
+numpy
+scikit-learn
+matplotlib
