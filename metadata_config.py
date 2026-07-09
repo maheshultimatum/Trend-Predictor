@@ -57,4 +57,4 @@ If you want to clone this repository and run the prediction engine manually on y
 1. Clone the repository:
    ```bash
    git clone [https://github.com/maheshultimatum/Trend-Predictor.git](https://github.com/maheshultimatum/Trend-Predictor.git)
-   cd Trend-Predictor
+   cd Trend-Predictor"""
