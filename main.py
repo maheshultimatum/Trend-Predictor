@@ -3,23 +3,35 @@ import datetime
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import yfinance as yf
-from sklearn.linear_model import LinearRegression
+import subprocess
+import sys
+
+# --- EMERGENCY BOOTSTRAP FOR CI RUNNERS ---
+# This forces the GitHub runner to install yfinance dynamically if the environment fails to find it
+try:
+    import yfinance as yf
+except ImportError:
+    print("yfinance not found in global runner scope. Installing now...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "yfinance"])
+    import yfinance as yf
+
+try:
+    from sklearn.linear_model import LinearRegression
+except ImportError:
+    print("scikit-learn not found. Installing now...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "scikit-learn"])
+    from sklearn.linear_model import LinearRegression
 
 def get_stock_data():
     """Pulls historical daily data for NIFTY 50 from Yahoo Finance."""
     try:
-        # '^NSEI' is the Yahoo Finance ticker for NIFTY 50
         ticker = yf.Ticker("^NSEI")
-        # Fetching recent historical data (past 6 months to get clean data)
         df = ticker.history(period="6m")
         
         if df.empty:
             raise ValueError("Yahoo Finance returned an empty DataFrame.")
             
-        # Rename 'Close' to match previous script expectations
         df = df.rename(columns={'Close': 'close'})
-        # Take the last 100 business days
         return df.tail(100)
     except Exception as e:
         print(f"Error fetching data from yfinance: {e}")
@@ -64,7 +76,6 @@ The whole pipeline runs serverless using GitHub Actions, meaning it requires zer
 ---
 
 ## 📊 Daily Market Insight
-<!-- THE DATA BELOW UPDATES AUTOMATICALLY EVERY WEEKDAY AT 9:00 PM IST -->
 - **Last Updated:** `{timestamp}`
 - **NIFTY 50 Last Close:** `{last_price:,.2f}`
 - **Predicted Next Close:** `{pred_price:,.2f}`
