@@ -1,42 +1,29 @@
 # NIFTY 50 Trend Predictor & Automated Pipeline
 
-[![Pipeline Status](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml/badge.svg)](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml)
+[![Pipeline](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml/badge.svg)](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml)
 ![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)
 ![Scikit-Learn](https://img.shields.io/badge/ML-Scikit--Learn-orange.svg)
 
-This project is a hands-off, automated data pipeline that predicts short-term market trends for the NIFTY 50 index. Every evening, it pulls the latest daily candle data directly from TradingView, runs it through a linear regression model to map the current momentum, updates a visualization chart, and pushes the new insights directly to this README.
+This project is a hands-off, automated data pipeline that predicts short-term market trends for the NIFTY 50 index. It updates daily via GitHub Actions.
 
-The whole pipeline runs serverless using GitHub Actions, meaning it requires zero server maintenance or manual intervention to keep updated.
-
---------------------------------------------------------------------------------------------------------------------
+---
 
 ## 📊 Daily Market Insight
-- **Last Updated:** `2026-07-10 15:30:00 UTC`
-- **NIFTY 50 Last Close:** `24,320.50`
-- **Predicted Next Close:** `24,410.15`
+- **Last Updated:** 2026-07-09 20:01:24 UTC
+- **NIFTY 50 Last Close:** 21,727.99
+- **Predicted Next Close:** 22,041.75
 - **Model Bias:** **🚀 BULLISH (UP)**
 
 ### 📈 Current Trendline Plot
 ![Stock Trend](./trend_prediction.png)
 
----------------------------------------------------------------------------------------------------------------------
+---
 
-## 🏗️ How It Works
+## ⚙️ Running it Locally
 
-The system is fully automated and executes the following steps Monday through Friday at **9:00 PM IST**:
-
-1. **Data Fetching:** A GitHub Actions workflow spins up a temporary virtual environment and uses `tvdatafeed` to fetch the 100 most recent daily price bars for NIFTY from the NSE exchange. 
-2. **Feature Setup:** The script organizes the historical closing prices and creates chronological time indexes to map out recent price velocity.
-3. **Model Training:** A simple Scikit-Learn Linear Regression model fits a trendline over the historical data to calculate where the price momentum is leaning for the next trading session.
-4. **Auto-Commit:** The script generates an updated chart (`trend_prediction.png`) and rewrites the stats block above. The GitHub Actions bot then commits the updated files directly back to the repository using a `[skip ci]` tag to avoid triggering an infinite build loop.
-
-----------------------------------------------------------------------------------------------------------------------
-
-## 🛠️ Tech Stack
-
-- **Language:** Python 3.10
-- **Data Source:** TradingView API wrapper (`tvdatafeed`)
-- **Data Processing:** Pandas & NumPy
-- **Machine Learning:** Scikit-Learn (Linear Regression)
-- **Plotting:** Matplotlib
-- **Automation:** GitHub Actions (scheduled via cron)
+```bash
+git clone [https://github.com/maheshultimatum/Trend-Predictor.git](https://github.com/maheshultimatum/Trend-Predictor.git)
+cd Trend-Predictor
+pip install -r requirements.txt
+python main.py
+```
