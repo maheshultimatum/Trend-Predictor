@@ -21,20 +21,30 @@ except ImportError:
 
 
 def get_stock_data():
-    """Pulls historical daily data for NIFTY 50 from Yahoo Finance."""
+    """Pulls historical daily data for NIFTY 50 from Yahoo Finance using a browser disguise."""
     try:
-        ticker = yf.Ticker("^NSEI")
+        import requests
+        
+        # Create a custom session to bypass basic bot-blocking
+        session = requests.Session()
+        session.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+        })
+        
+        # Pass the disguised session into yfinance
+        ticker = yf.Ticker("^NSEI", session=session)
         df = ticker.history(period="6m")
         
         if df.empty:
-            raise ValueError("Yahoo Finance returned an empty DataFrame. The runner might be rate-limited.")
+            raise ValueError("Yahoo Finance returned an empty DataFrame. Rate limit still active.")
             
         df = df.rename(columns={'Close': 'close'})
         return df.tail(100)
+        
     except Exception as e:
         print(f"CRITICAL ERROR fetching data from yfinance: {e}")
         print("Stopping pipeline to prevent logging fake/stale data.")
-        sys.exit(1) # This forces the GitHub Action to fail and turn red
+        sys.exit(1) # Forces GitHub Actions to fail so you can see the error
 
 
 def train_and_predict(df):
