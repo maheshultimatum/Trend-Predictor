@@ -4,7 +4,8 @@ def generate_readme_template(last_price, pred_price, trend):
     """Returns the formatted markdown string for the README repository file."""
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
     
-    return f"""# NIFTY 50 Trend Predictor & Automated Pipeline
+    # We use a clean template string and use .format() to eliminate f-string triple quote bugs
+    template = """# NIFTY 50 Trend Predictor & Automated Pipeline
 
 [![Pipeline Status](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml/badge.svg)](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml)
 ![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)
@@ -17,10 +18,10 @@ The whole pipeline runs serverless using GitHub Actions, meaning it requires zer
 ---
 
 ## 📊 Daily Market Insight
-- **Last Updated:** `{timestamp}`
-- **NIFTY 50 Last Close:** `{last_price:,.2f}`
-- **Predicted Next Close:** `{pred_price:,.2f}`
-- **Model Bias:** **{trend}**
+- **Last Updated:** {VAL_TIMESTAMP}
+- **NIFTY 50 Last Close:** {VAL_LAST_PRICE}
+- **Predicted Next Close:** {VAL_PRED_PRICE}
+- **Model Bias:** **{VAL_TREND}**
 
 ### 📈 Current Trendline Plot
 ![Stock Trend](./trend_prediction.png)
