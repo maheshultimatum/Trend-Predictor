@@ -33,7 +33,9 @@ def get_stock_data():
         
         # Pass the disguised session into yfinance
         ticker = yf.Ticker("^NSEI", session=session)
-        df = ticker.history(period="6m")
+        
+        # FIX: Changed "6m" to "6mo" (6 months)
+        df = ticker.history(period="6mo")
         
         if df.empty:
             raise ValueError("Yahoo Finance returned an empty DataFrame. Rate limit still active.")
@@ -44,7 +46,7 @@ def get_stock_data():
     except Exception as e:
         print(f"CRITICAL ERROR fetching data from yfinance: {e}")
         print("Stopping pipeline to prevent logging fake/stale data.")
-        sys.exit(1) # Forces GitHub Actions to fail so you can see the error
+        sys.exit(1)
 
 
 def train_and_predict(df):
