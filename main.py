@@ -6,9 +6,6 @@ import matplotlib.pyplot as plt
 import subprocess
 import sys
 
-# Import the markdown template from our metadata configuration file
-from metadata_config import generate_readme_template
-
 # --- EMERGENCY BOOTSTRAP FOR CI RUNNERS ---
 try:
     import yfinance as yf
@@ -60,14 +57,36 @@ def train_and_predict(df):
 
 
 def update_readme(last_price, pred_price):
-    """Writes the markdown data into README.md using the imported module configuration."""
+    """Generates the README using a list of strings to prevent web-editor syntax errors."""
     trend = "🚀 BULLISH (UP)" if pred_price > last_price else "📉 BEARISH (DOWN)"
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
     
-    # Get the clean template string out of our metadata file
-    readme_content = generate_readme_template(last_price, pred_price, trend)
+    lines = [
+        "# NIFTY 50 Trend Predictor & Automated Pipeline\n\n",
+        "[![Pipeline](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml/badge.svg)](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml)\n",
+        "![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)\n",
+        "![Scikit-Learn](https://img.shields.io/badge/ML-Scikit--Learn-orange.svg)\n\n",
+        "This project is a hands-off, automated data pipeline that predicts short-term market trends for the NIFTY 50 index. It updates daily via GitHub Actions.\n\n",
+        "---\n\n",
+        "## 📊 Daily Market Insight\n",
+        f"- **Last Updated:** {timestamp}\n",
+        f"- **NIFTY 50 Last Close:** {last_price:,.2f}\n",
+        f"- **Predicted Next Close:** {pred_price:,.2f}\n",
+        f"- **Model Bias:** **{trend}**\n\n",
+        "### 📈 Current Trendline Plot\n",
+        "![Stock Trend](./trend_prediction.png)\n\n",
+        "---\n\n",
+        "## ⚙️ Running it Locally\n\n",
+        "```bash\n",
+        "git clone [https://github.com/maheshultimatum/Trend-Predictor.git](https://github.com/maheshultimatum/Trend-Predictor.git)\n",
+        "cd Trend-Predictor\n",
+        "pip install -r requirements.txt\n",
+        "python main.py\n",
+        "```\n"
+    ]
     
-    with open("README.md", "w") as f:
-        f.write(readme_content)
+    with open("README.md", "w", encoding="utf-8") as f:
+        f.writelines(lines)
 
 
 def main():
