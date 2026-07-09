@@ -76,6 +76,7 @@ The whole pipeline runs serverless using GitHub Actions, meaning it requires zer
 ---
 
 ## 📊 Daily Market Insight
+<!-- THE DATA BELOW UPDATES AUTOMATICALLY EVERY WEEKDAY AT 9:00 PM IST -->
 - **Last Updated:** `{timestamp}`
 - **NIFTY 50 Last Close:** `{last_price:,.2f}`
 - **Predicted Next Close:** `{pred_price:,.2f}`
