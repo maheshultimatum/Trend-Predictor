@@ -3,5 +3,5 @@ pandas
 numpy
 scikit-learn
 matplotlib
-git+https://github.com/twopirllc/pandas-ta.git
+pandas-ta
 requests
