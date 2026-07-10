@@ -3,29 +3,34 @@ import sys
 import datetime
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import mplfinance as mpf
 import requests
 import pandas_ta as ta
 from sklearn.linear_model import LinearRegression
 
 
 def get_stock_data():
-    """Pulls historical daily data for NIFTY 50 from Yahoo Finance."""
+    """Pulls 5-minute interval data for NIFTY 50 from Yahoo Finance."""
     try:
         import yfinance as yf
-        # Browser disguise to bypass Yahoo Finance bot blocking
         session = requests.Session()
         session.headers.update({
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
         })
         
         ticker = yf.Ticker("^NSEI", session=session)
-        df = ticker.history(period="6mo")
+        # Fetching 60 days of data (max allowed for 5m) at 5-minute intervals
+        df = ticker.history(period="60d", interval="5m")
         
         if df.empty:
             raise ValueError("Yahoo Finance returned an empty DataFrame. Rate limit active.")
             
         df = df.rename(columns={'Close': 'close'})
+        
+        # Ensure the index is timezone-aware for mplfinance
+        if df.index.tz is None:
+            df.index = df.index.tz_localize('UTC')
+            
         return df
     except Exception as e:
         print(f"CRITICAL ERROR fetching data from yfinance: {e}")
@@ -39,11 +44,11 @@ def add_technical_indicators(df):
     # RSI (Relative Strength Index)
     df['RSI'] = ta.rsi(df['close'], length=14)
     
-    # Distance to Daily Extremes
+    # Distance to Extremes
     df['Dist_to_High'] = df['High'] - df['close']
     df['Dist_to_Low'] = df['close'] - df['Low']
     
-    # Dynamic Fibonacci Retracement Levels (20-Day Swing)
+    # Dynamic Fibonacci Retracement Levels (20-period Swing)
     rolling_high = df['High'].rolling(window=20).max()
     rolling_low = df['Low'].rolling(window=20).min()
     diff = rolling_high - rolling_low
@@ -56,8 +61,10 @@ def add_technical_indicators(df):
 
 
 def train_and_predict(df):
-    """Applies a simple ML model using quantitative features to predict tomorrow's close."""
+    """Applies an ML model to predict the next 5-minute close."""
     df = add_technical_indicators(df)
+    
+    # The target is now the NEXT 5-minute candle
     df['Target'] = df['close'].shift(-1)
     
     train_df = df.dropna()
@@ -69,20 +76,14 @@ def train_and_predict(df):
     model = LinearRegression()
     model.fit(X, y)
     
-    # Predict tomorrow using TODAY's technical indicators
     todays_data = df[features].iloc[-1].values.reshape(1, -1)
     predicted_price = model.predict(todays_data)[0]
-    
-    # Fit a simple time-series line just for the chart visualization
-    plot_model = LinearRegression()
-    plot_model.fit(np.arange(len(df)).reshape(-1, 1), df['close'])
-    df['Trendline'] = plot_model.predict(np.arange(len(df)).reshape(-1, 1))
     
     return df, predicted_price
 
 
 def update_readme(df, pred_price):
-    """Generates the README showing off both basic prices and quant signals."""
+    """Generates a professional, text-focused README dashboard."""
     last_price = df['close'].iloc[-1]
     rsi = df['RSI'].iloc[-1]
     fib_23 = df['Fib_23_6'].iloc[-1]
@@ -93,21 +94,21 @@ def update_readme(df, pred_price):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
     
     lines = [
-        "# NIFTY 50 Quant Predictor & Automated Pipeline\n\n",
+        "# NIFTY 50 Intraday Quant Predictor\n\n",
         "[![Pipeline](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml/badge.svg)](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml)\n",
         "![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)\n",
         "![Scikit-Learn](https://img.shields.io/badge/ML-Scikit--Learn-orange.svg)\n\n",
-        "This project is a hands-off, automated data pipeline that predicts short-term market trends for the NIFTY 50 index using Quantitative Finance indicators (RSI, Fibonacci, Volatility). It updates daily via GitHub Actions.\n\n",
+        "This automated data pipeline predicts intraday market trends for the NIFTY 50 index using Quantitative Finance indicators applied to 5-minute interval data.\n\n",
         "---\n\n",
-        "## Daily Market Insight\n",
-        f"- **Last Updated:** {timestamp}\n",
-        f"- **NIFTY 50 Last Close:** {last_price:,.2f}\n",
-        f"- **Predicted Next Close:** {pred_price:,.2f}\n",
-        f"- **Model Bias:** **{trend}**\n\n",
+        "## Market Insight\n",
+        f"- Last Updated: {timestamp}\n",
+        f"- NIFTY 50 Last Close: {last_price:,.2f}\n",
+        f"- Predicted Next 5-Min Close: {pred_price:,.2f}\n",
+        f"- Model Bias: **{trend}**\n\n",
         "### Quantitative Signals\n",
-        f"- **RSI (14-Day):** {rsi:.2f} ({momentum})\n",
-        f"- **Immediate Fibonacci Resistance/Support (23.6%):** {fib_23:,.2f}\n\n",
-        "### Current Trendline Plot\n",
+        f"- RSI (14-Period): {rsi:.2f} ({momentum})\n",
+        f"- Immediate Fibonacci Resistance/Support (23.6%): {fib_23:,.2f}\n\n",
+        "### Intraday Chart (Last 150 Intervals)\n",
         "![Stock Trend](./trend_prediction.png)\n\n",
         "---\n\n",
         "## Running it Locally\n\n",
@@ -124,29 +125,27 @@ def update_readme(df, pred_price):
 
 
 def main():
-    print("Fetching NIFTY data...")
+    print("Fetching NIFTY 5-minute data...")
     df = get_stock_data()
     
     print("Training Quant Model...")
     df_results, predicted_price = train_and_predict(df)
     
-    # Plotting
-    plt.figure(figsize=(10, 5))
-    plt.plot(df_results.index, df_results['close'], label='NIFTY Actual Close', color='teal', linewidth=2)
-    plt.plot(df_results.index, df_results['Trendline'], label='ML Trendline', color='orange', linestyle='--')
+    print("Generating Candlestick Chart...")
+    # Isolate the last 150 candles for readability
+    plot_df = df_results.tail(150)
     
-    # Overlay the Fibonacci level
-    last_fib = df_results['Fib_23_6'].iloc[-1]
-    plt.axhline(y=last_fib, color='purple', linestyle=':', alpha=0.6, label='Fib 23.6% Level')
+    # Extract the latest Fibonacci level to draw as a horizontal reference line
+    last_fib = plot_df['Fib_23_6'].iloc[-1]
     
-    plt.title("NSE: NIFTY Price with Quant Features")
-    plt.xlabel("Date")
-    plt.ylabel("Index Points")
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
-    plt.savefig('trend_prediction.png')
-    plt.close()
+    # Use mplfinance to generate a professional candlestick chart
+    mpf.plot(plot_df, 
+             type='candle', 
+             style='yahoo', 
+             title="NIFTY 50 (5-Minute Intervals)",
+             ylabel="Index Points",
+             hlines=dict(hlines=[last_fib], colors=['purple'], linestyle='-.', alpha=0.6),
+             savefig=dict(fname='trend_prediction.png', dpi=300, bbox_inches='tight'))
     
     # Update Dashboard
     update_readme(df_results, predicted_price)
