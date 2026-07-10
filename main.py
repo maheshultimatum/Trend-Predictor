@@ -19,14 +19,12 @@ def get_stock_data():
         })
         
         ticker = yf.Ticker("^NSEI", session=session)
-        # Fetching 60 days of data (max allowed for 5m) at 5-minute intervals
+        # Fetching 60 days of data at 5-minute intervals
         df = ticker.history(period="60d", interval="5m")
         
         if df.empty:
             raise ValueError("Yahoo Finance returned an empty DataFrame. Rate limit active.")
             
-        df = df.rename(columns={'Close': 'close'})
-        
         # Ensure the index is timezone-aware for mplfinance
         if df.index.tz is None:
             df.index = df.index.tz_localize('UTC')
@@ -42,11 +40,11 @@ def add_technical_indicators(df):
     df = df.copy()
     
     # RSI (Relative Strength Index)
-    df['RSI'] = ta.rsi(df['close'], length=14)
+    df['RSI'] = ta.rsi(df['Close'], length=14)
     
     # Distance to Extremes
-    df['Dist_to_High'] = df['High'] - df['close']
-    df['Dist_to_Low'] = df['close'] - df['Low']
+    df['Dist_to_High'] = df['High'] - df['Close']
+    df['Dist_to_Low'] = df['Close'] - df['Low']
     
     # Dynamic Fibonacci Retracement Levels (20-period Swing)
     rolling_high = df['High'].rolling(window=20).max()
@@ -64,11 +62,11 @@ def train_and_predict(df):
     """Applies an ML model to predict the next 5-minute close."""
     df = add_technical_indicators(df)
     
-    # The target is now the NEXT 5-minute candle
-    df['Target'] = df['close'].shift(-1)
+    # Target is the next 5-minute close
+    df['Target'] = df['Close'].shift(-1)
     
     train_df = df.dropna()
-    features = ['close', 'RSI', 'Dist_to_High', 'Dist_to_Low', 'Fib_23_6', 'Fib_38_2', 'Fib_61_8']
+    features = ['Close', 'RSI', 'Dist_to_High', 'Dist_to_Low', 'Fib_23_6', 'Fib_38_2', 'Fib_61_8']
     
     X = train_df[features]
     y = train_df['Target']
@@ -76,7 +74,8 @@ def train_and_predict(df):
     model = LinearRegression()
     model.fit(X, y)
     
-    todays_data = df[features].iloc[-1].values.reshape(1, -1)
+    # FIX: Double brackets retains the column names as a DataFrame to fix the Sklearn warning
+    todays_data = df[features].iloc[[-1]]
     predicted_price = model.predict(todays_data)[0]
     
     return df, predicted_price
@@ -84,7 +83,7 @@ def train_and_predict(df):
 
 def update_readme(df, pred_price):
     """Generates a professional, text-focused README dashboard."""
-    last_price = df['close'].iloc[-1]
+    last_price = df['Close'].iloc[-1]
     rsi = df['RSI'].iloc[-1]
     fib_23 = df['Fib_23_6'].iloc[-1]
     
@@ -123,7 +122,6 @@ def update_readme(df, pred_price):
     with open("README.md", "w", encoding="utf-8") as f:
         f.writelines(lines)
 
-
 def main():
     print("Fetching NIFTY 5-minute data...")
     df = get_stock_data()
@@ -135,10 +133,10 @@ def main():
     # Isolate the last 150 candles for readability
     plot_df = df_results.tail(150)
     
-    # Extract the latest Fibonacci level to draw as a horizontal reference line
+    # Extract latest Fibonacci level
     last_fib = plot_df['Fib_23_6'].iloc[-1]
     
-    # Use mplfinance to generate a professional candlestick chart
+    # Generate candlestick plot
     mpf.plot(plot_df, 
              type='candle', 
              style='yahoo', 
