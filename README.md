@@ -1,24 +1,24 @@
-# NIFTY 50 Quant Predictor & Automated Pipeline
+# NIFTY 50 Intraday Quant Predictor
 
 [![Pipeline](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml/badge.svg)](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
 ![Scikit-Learn](https://img.shields.io/badge/ML-Scikit--Learn-orange.svg)
 
-This project is a hands-off, automated data pipeline that predicts short-term market trends for the NIFTY 50 index using Quantitative Finance indicators (RSI, Fibonacci, Volatility). It updates daily via GitHub Actions.
+This automated data pipeline predicts intraday market trends for the NIFTY 50 index using Quantitative Finance indicators applied to 5-minute interval data.
 
 ---
 
-## Daily Market Insight
-- **Last Updated:** 2026-07-10 12:41:39 UTC
-- **NIFTY 50 Last Close:** 24,206.90
-- **Predicted Next Close:** 24,097.93
-- **Model Bias:** **BEARISH (DOWN)**
+## Market Insight
+- Last Updated: 2026-07-10 12:52:37 UTC
+- NIFTY 50 Last Close: 24,211.65
+- Predicted Next 5-Min Close: 24,210.96
+- Model Bias: **BEARISH (DOWN)**
 
 ### Quantitative Signals
-- **RSI (14-Day):** 55.80 (Neutral)
-- **Immediate Fibonacci Resistance/Support (23.6%):** 24,243.69
+- RSI (14-Period): 57.16 (Neutral)
+- Immediate Fibonacci Resistance/Support (23.6%): 24,215.28
 
-### Current Trendline Plot
+### Intraday Chart (Last 150 Intervals)
 ![Stock Trend](./trend_prediction.png)
 
 ---
