@@ -1,10 +1,12 @@
 import os
+import sys
 import datetime
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import subprocess
-import sys
+import requests
+import pandas_ta as ta
+from sklearn.linear_model import LinearRegression
 
 # --- EMERGENCY BOOTSTRAP FOR CI RUNNERS ---
 try:
