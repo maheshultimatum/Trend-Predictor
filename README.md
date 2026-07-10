@@ -4,7 +4,7 @@
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
 ![Scikit-Learn](https://img.shields.io/badge/ML-Scikit--Learn-orange.svg)
 
-This automated data pipeline predicts intraday market trends for the NIFTY 50 index using Quantitative Finance indicators applied to 5-minute interval data.
+This automated data pipeline predicts intraday market trends for the NIFTY 50 index with the 5-minute interval data.
 
 ---
 
