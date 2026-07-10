@@ -9,7 +9,7 @@ This automated data pipeline predicts intraday market trends for the NIFTY 50 in
 ---
 
 ## Market Insight
-- Last Updated: 2026-07-10 12:52:37 UTC
+- Last Updated: 2026-07-10 13:04:33 UTC
 - NIFTY 50 Last Close: 24,211.65
 - Predicted Next 5-Min Close: 24,210.96
 - Model Bias: **BEARISH (DOWN)**
