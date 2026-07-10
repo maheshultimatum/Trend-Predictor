@@ -4,12 +4,12 @@
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
 ![Scikit-Learn](https://img.shields.io/badge/ML-Scikit--Learn-orange.svg)
 
-This automated data pipeline predicts intraday market trends for the NIFTY 50 index with the 5-minute interval data.
+This automated data pipeline predicts intraday market trends for the NIFTY 50 index using Quantitative Finance indicators applied to 5-minute interval data.
 
 ---
 
 ## Market Insight
-- Last Updated: 2026-07-10 17:15:49 UTC
+- Last Updated: 2026-07-10 22:12:29 UTC
 - NIFTY 50 Last Close: 24,211.65
 - Predicted Next 5-Min Close: 24,210.96
 - Model Bias: **BEARISH (DOWN)**
