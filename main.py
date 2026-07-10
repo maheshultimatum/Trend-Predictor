@@ -87,8 +87,8 @@ def update_readme(df, pred_price):
     rsi = df['RSI'].iloc[-1]
     fib_23 = df['Fib_23_6'].iloc[-1]
     
-    trend = "🚀 BULLISH (UP)" if pred_price > last_price else "📉 BEARISH (DOWN)"
-    momentum = "🔥 Overbought" if rsi > 70 else "🧊 Oversold" if rsi < 30 else "⚖️ Neutral"
+    trend = "BULLISH (UP)" if pred_price > last_price else "BEARISH (DOWN)"
+    momentum = "Overbought" if rsi > 70 else "Oversold" if rsi < 30 else "Neutral"
     
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
     
@@ -99,18 +99,18 @@ def update_readme(df, pred_price):
         "![Scikit-Learn](https://img.shields.io/badge/ML-Scikit--Learn-orange.svg)\n\n",
         "This project is a hands-off, automated data pipeline that predicts short-term market trends for the NIFTY 50 index using Quantitative Finance indicators (RSI, Fibonacci, Volatility). It updates daily via GitHub Actions.\n\n",
         "---\n\n",
-        "## 📊 Daily Market Insight\n",
+        "## Daily Market Insight\n",
         f"- **Last Updated:** {timestamp}\n",
         f"- **NIFTY 50 Last Close:** {last_price:,.2f}\n",
         f"- **Predicted Next Close:** {pred_price:,.2f}\n",
         f"- **Model Bias:** **{trend}**\n\n",
-        "### 🔬 Quantitative Signals\n",
+        "### Quantitative Signals\n",
         f"- **RSI (14-Day):** {rsi:.2f} ({momentum})\n",
         f"- **Immediate Fibonacci Resistance/Support (23.6%):** {fib_23:,.2f}\n\n",
-        "### 📈 Current Trendline Plot\n",
+        "### Current Trendline Plot\n",
         "![Stock Trend](./trend_prediction.png)\n\n",
         "---\n\n",
-        "## ⚙️ Running it Locally\n\n",
+        "## Running it Locally\n\n",
         "```bash\n",
         "git clone [https://github.com/maheshultimatum/Trend-Predictor.git](https://github.com/maheshultimatum/Trend-Predictor.git)\n",
         "cd Trend-Predictor\n",
