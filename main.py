@@ -122,6 +122,7 @@ def update_readme(df, pred_price):
     with open("README.md", "w", encoding="utf-8") as f:
         f.writelines(lines)
 
+
 def main():
     print("Fetching NIFTY 5-minute data...")
     df = get_stock_data()
