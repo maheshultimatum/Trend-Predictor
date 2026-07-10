@@ -8,22 +8,22 @@ This project is a hands-off, automated data pipeline that predicts short-term ma
 
 ---
 
-## 📊 Daily Market Insight
-- **Last Updated:** 2026-07-10 12:38:49 UTC
+## Daily Market Insight
+- **Last Updated:** 2026-07-10 12:41:39 UTC
 - **NIFTY 50 Last Close:** 24,206.90
 - **Predicted Next Close:** 24,097.93
-- **Model Bias:** **📉 BEARISH (DOWN)**
+- **Model Bias:** **BEARISH (DOWN)**
 
-### 🔬 Quantitative Signals
-- **RSI (14-Day):** 55.80 (⚖️ Neutral)
+### Quantitative Signals
+- **RSI (14-Day):** 55.80 (Neutral)
 - **Immediate Fibonacci Resistance/Support (23.6%):** 24,243.69
 
-### 📈 Current Trendline Plot
+### Current Trendline Plot
 ![Stock Trend](./trend_prediction.png)
 
 ---
 
-## ⚙️ Running it Locally
+## Running it Locally
 
 ```bash
 git clone [https://github.com/maheshultimatum/Trend-Predictor.git](https://github.com/maheshultimatum/Trend-Predictor.git)
