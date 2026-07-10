@@ -1,4 +1,4 @@
-# NIFTY 50 Intraday Quant Predictor
+# NIFTY 50 Intraday 
 
 [![Pipeline](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml/badge.svg)](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
@@ -9,7 +9,7 @@ This automated data pipeline predicts intraday market trends for the NIFTY 50 in
 ---
 
 ## Market Insight
-- Last Updated: 2026-07-10 13:04:33 UTC
+- Last Updated: 2026-07-10 13:06:58 UTC
 - NIFTY 50 Last Close: 24,211.65
 - Predicted Next 5-Min Close: 24,210.96
 - Model Bias: **BEARISH (DOWN)**
