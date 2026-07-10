@@ -8,6 +8,12 @@ import sys
 
 # --- EMERGENCY BOOTSTRAP FOR CI RUNNERS ---
 try:
+    import pandas_ta as ta
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "pandas-ta"])
+    import pandas_ta as ta
+    
+try:
     import yfinance as yf
 except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "yfinance"])
