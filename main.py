@@ -54,23 +54,62 @@ def get_stock_data():
         print("Stopping pipeline to prevent logging fake/stale data.")
         sys.exit(1)
 
+def add_technical_indicators(df):
+    """Injects Quantitative Finance indicators into the dataset."""
+    df = df.copy()
+    
+    # 1. RSI (Relative Strength Index) - 14 Day Period
+    # Measures momentum. Over 70 = Overbought, Under 30 = Oversold
+    df['RSI'] = ta.rsi(df['close'], length=14)
+    
+    # 2. Distance to Daily Extremes
+    # Helps the model understand if the price is closing near the day's high or low
+    df['Dist_to_High'] = df['High'] - df['close']
+    df['Dist_to_Low'] = df['close'] - df['Low']
+    
+    # 3. Dynamic Fibonacci Retracement Levels (20-Day Swing)
+    # Calculates support and resistance based on recent market swings
+    rolling_high = df['High'].rolling(window=20).max()
+    rolling_low = df['Low'].rolling(window=20).min()
+    diff = rolling_high - rolling_low
+    
+    df['Fib_23_6'] = rolling_high - (diff * 0.236)
+    df['Fib_38_2'] = rolling_high - (diff * 0.382)
+    df['Fib_61_8'] = rolling_high - (diff * 0.618)
+    
+    # Drop the first 20 days since our moving averages/rolling windows need time to calculate
+    df = df.dropna()
+    
+    return df
 
 def train_and_predict(df):
-    """Applies a simple ML model to predict tomorrow's trend direction."""
-    df = df.copy()
-    df['Day_Index'] = np.arange(len(df))
+    """Applies a simple ML model using quantitative features to predict tomorrow's close."""
+    # First, run the data through our new Quant Engine
+    df = add_technical_indicators(df)
+    
+    # The target we are trying to predict is STILL tomorrow's price
     df['Target'] = df['close'].shift(-1)
     
+    # Create our training dataset
     train_df = df.dropna()
-    X = train_df[['Day_Index']]
+    
+    # FEATURE SELECTION: The model now looks at RSI, Fibonacci, and Daily High/Lows!
+    features = ['close', 'RSI', 'Dist_to_High', 'Dist_to_Low', 'Fib_23_6', 'Fib_38_2', 'Fib_61_8']
+    
+    X = train_df[features]
     y = train_df['Target']
     
     model = LinearRegression()
     model.fit(X, y)
     
-    tomorrow_idx = np.array([[len(df)]])
-    predicted_price = model.predict(tomorrow_idx)[0]
-    df['Trendline'] = model.predict(df[['Day_Index']])
+    # Predict tomorrow using TODAY's technical indicators
+    todays_data = df[features].iloc[-1].values.reshape(1, -1)
+    predicted_price = model.predict(todays_data)[0]
+    
+    # For the chart, we still want a visual trendline, so we'll fit a separate basic line just for plotting
+    plot_model = LinearRegression()
+    plot_model.fit(np.arange(len(df)).reshape(-1, 1), df['close'])
+    df['Trendline'] = plot_model.predict(np.arange(len(df)).reshape(-1, 1))
     
     return df, predicted_price
 
