@@ -74,7 +74,7 @@ def train_and_predict(df):
     model = LinearRegression()
     model.fit(X, y)
     
-    # FIX: Double brackets retains the column names as a DataFrame to fix the Sklearn warning
+    # Double brackets retains the column names as a DataFrame to fix the Sklearn warning
     todays_data = df[features].iloc[[-1]]
     predicted_price = model.predict(todays_data)[0]
     
@@ -93,7 +93,7 @@ def update_readme(df, pred_price):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
     
     lines = [
-        "# NIFTY 50 Intraday \n\n",
+        "# NIFTY 50 Intraday Quant Predictor\n\n",
         "[![Pipeline](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml/badge.svg)](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml)\n",
         "![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)\n",
         "![Scikit-Learn](https://img.shields.io/badge/ML-Scikit--Learn-orange.svg)\n\n",
