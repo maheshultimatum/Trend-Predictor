@@ -34,7 +34,7 @@ def get_stock_data():
 
 
 def add_technical_indicators(df):
-    """Injects 31 & 5 EMA Strategy parameters and Quant indicators."""
+    """Injects 31 & 5 EMA Strategy parameters with fib and RSI."""
     df = df.copy()
     
     # Core Strategy Indicators
