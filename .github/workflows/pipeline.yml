@@ -1,29 +1,8 @@
-name: NIFTY Intraday Prediction Pipeline
-
-on:
-  schedule:
-    # 1. Opening hour fraction (03:45 UTC to 03:55 UTC -> 09:15 IST to 09:25 IST)
-    - cron: '45-59/5 3 * * 1-5'
-    
-    # 2. Core market hours (Every 5 mins from 04:00 UTC to 09:59 UTC -> 09:30 IST to 15:25 IST)
-    - cron: '*/5 4-9 * * 1-5'
-    
-    # 3. Exact closing tick (10:00 UTC -> 15:30 IST)
-    - cron: '0 10 * * 1-5'
-
-  # Manual trigger for testing
-  workflow_dispatch:
-
-# Grant write permissions to the GITHUB_TOKEN for pushing commits
-permissions:
-  contents: write
-
-jobs:
-  run-pipeline:
-    runs-on: ubuntu-latest
-    steps:
+steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # FIX 1: Forces GitHub to download history so rebasing works
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -45,5 +24,16 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md trend_prediction.png
           
-          # FIX: pull --rebase grabs your latest remote commits before pushing the bot's updates
-          git diff --quiet && git diff --staged --quiet || (git commit -m "automated intraday update [skip ci]" && git pull --rebase origin main && git push)
+          # FIX 2: A proper Bash if-statement instead of chaining with && and ||
+          if ! git diff --staged --quiet; then
+            echo "Changes detected. Committing..."
+            git commit -m "automated intraday update [skip ci]"
+            
+            echo "Pulling latest changes from remote to prevent conflicts..."
+            git pull --rebase origin main
+            
+            echo "Pushing to repository..."
+            git push
+          else
+            echo "No new market data to update. Skipping commit."
+          fi
