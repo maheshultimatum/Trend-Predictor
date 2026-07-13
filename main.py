@@ -34,7 +34,7 @@ def get_stock_data():
 
 
 def add_technical_indicators(df):
-    """Injects 31 & 5 EMA Strategy parameters with fib and RSI."""
+    """Injects 31 & 5 EMA Strategy parameters and Quant indicators."""
     df = df.copy()
     
     # Core Strategy Indicators
@@ -105,7 +105,7 @@ def update_readme(df, pred_price):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
     
     lines = [
-        "# NIFTY 50 Intraday Engine\n\n",
+        "# NIFTY 50 Intraday Quant & Strategy Engine\n\n",
         "[![Pipeline](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml/badge.svg)](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml)\n",
         "![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)\n",
         "![Scikit-Learn](https://img.shields.io/badge/ML-Scikit--Learn-orange.svg)\n\n",
