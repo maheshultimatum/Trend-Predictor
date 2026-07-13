@@ -2,17 +2,21 @@ name: NIFTY Intraday Prediction Pipeline
 
 on:
   schedule:
-    # 1. Capture the opening hour fraction (03:45 UTC to 03:55 UTC -> 09:15 IST to 09:25 IST)
+    # 1. Opening hour fraction (03:45 UTC to 03:55 UTC -> 09:15 IST to 09:25 IST)
     - cron: '45-59/5 3 * * 1-5'
     
-    # 2. Capture the core market hours (Every 5 mins from 04:00 UTC to 09:59 UTC -> 09:30 IST to 15:25 IST)
+    # 2. Core market hours (Every 5 mins from 04:00 UTC to 09:59 UTC -> 09:30 IST to 15:25 IST)
     - cron: '*/5 4-9 * * 1-5'
     
-    # 3. Capture the exact closing tick (10:00 UTC -> 15:30 IST)
+    # 3. Exact closing tick (10:00 UTC -> 15:30 IST)
     - cron: '0 10 * * 1-5'
 
-  # Keeps the manual trigger active for testing purposes
+  # Manual trigger for testing
   workflow_dispatch:
+
+# Grant write permissions to the GITHUB_TOKEN for pushing commits
+permissions:
+  contents: write
 
 jobs:
   run-pipeline:
