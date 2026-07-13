@@ -25,7 +25,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Forces GitHub to download history so rebasing works
+          fetch-depth: 0 # Required for the fetch and reset commands below
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -45,18 +45,23 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 1. Fetch the absolute latest remote state to catch any changes made while the script was running
+          git fetch origin main
+          
+          # 2. Sync local history with the remote, but KEEP the newly generated README and image in the staging area
+          git reset --soft origin/main
+          
+          # 3. Add the files to ensure they are tracked for this specific commit
           git add README.md trend_prediction.png
           
-          # Proper Bash if-statement to handle commits and rebasing cleanly
+          # 4. Commit and push flawlessly without merge conflict anxiety
           if ! git diff --staged --quiet; then
             echo "Changes detected. Committing..."
             git commit -m "automated intraday update [skip ci]"
             
-            echo "Pulling latest changes from remote to prevent conflicts..."
-            git pull --rebase origin main
-            
             echo "Pushing to repository..."
-            git push
+            git push origin HEAD:main
           else
             echo "No new market data to update. Skipping commit."
           fi
