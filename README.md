@@ -9,21 +9,21 @@ This pipeline automates an intraday technical framework running a 31 & 5 EMA str
 ---
 
 ## Core Execution Status
-- Last Engine Run: 2026-07-14 05:58:36 UTC
-- NIFTY 50 Current Index: 24,137.75
-- Model Target Prediction (Next 5-Min): 24,137.13
+- Last Engine Run: 2026-07-14 06:15:27 UTC
+- NIFTY 50 Current Index: 24,105.65
+- Model Target Prediction (Next 5-Min): 24,104.27
 - Machine Learning Bias: **BEARISH (DOWN)**
 
 ## 31 & 5 EMA Execution Signals
-- Trend Rule (Price vs 31 EMA): **UPTREND**
-- Ribbon Alignment (5 EMA vs 31 EMA): **BULLISH (5 EMA > 31 EMA)**
+- Trend Rule (Price vs 31 EMA): **DOWNTREND**
+- Ribbon Alignment (5 EMA vs 31 EMA): **BEARISH (5 EMA < 31 EMA)**
 - Volume Rule (Current vs Past 5 Candles): **NORMAL / LOW**
 - Algorithmic Output: **NO SIGNAL / HOLD (Awaiting execution setup)**
 
 ### Secondary Micro Metrics
-- RSI (14-Period): 54.12
-- Fast Exponential Moving Average (5 EMA): 24,133.83
-- Slow Exponential Moving Average (31 EMA): 24,128.85
+- RSI (14-Period): 43.55
+- Fast Exponential Moving Average (5 EMA): 24,115.29
+- Slow Exponential Moving Average (31 EMA): 24,125.53
 
 ### Live Intraday Chart Architecture
 ![Stock Trend](./trend_prediction.png)
