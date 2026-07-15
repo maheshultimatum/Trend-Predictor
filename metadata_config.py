@@ -17,18 +17,18 @@ The whole pipeline runs serverless using GitHub Actions, meaning it requires zer
 
 ---
 
-## 📊 Daily Market Insight
+## Daily Market Insight
 - **Last Updated:** {VAL_TIMESTAMP}
 - **NIFTY 50 Last Close:** {VAL_LAST_PRICE}
 - **Predicted Next Close:** {VAL_PRED_PRICE}
 - **Model Bias:** **{VAL_TREND}**
 
-### 📈 Current Trendline Plot
+### Current Trendline Plot
 ![Stock Trend](./trend_prediction.png)
 
 ---
 
-## 🏗️ How It Works
+## How It Works
 
 The system is fully automated and executes the following steps Monday through Friday at **9:00 PM IST**:
 
@@ -39,7 +39,7 @@ The system is fully automated and executes the following steps Monday through Fr
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Language:** Python 3.10
 - **Data Source:** Yahoo Finance (`yfinance`)
@@ -50,7 +50,7 @@ The system is fully automated and executes the following steps Monday through Fr
 
 ---
 
-## ⚙️ Running it Locally
+## Running it Locally
 
 If you want to clone this repository and run the prediction engine manually on your machine:
 
