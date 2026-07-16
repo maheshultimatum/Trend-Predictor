@@ -1,19 +1,20 @@
-name: Indian Equities Quant Screener
+name: NIFTY Intraday Prediction Pipeline
 
 on:
   schedule:
-    # Morning Session: 04:00 to 05:55 UTC -> 9:30 AM to 11:25 AM IST
-    - cron: '*/5 4-5 * * 1-5'
-    # Morning Session Close: 06:00 UTC -> 11:30 AM IST
-    - cron: '0 6 * * 1-5'
+    # 1. Opening hour fraction (03:45 UTC to 03:55 UTC -> 09:15 IST to 09:25 IST)
+    - cron: '45-59/5 3 * * 1-5'
     
-    # Afternoon Session: 08:00 to 08:55 UTC -> 1:30 PM to 2:25 PM IST
-    - cron: '*/5 8 * * 1-5'
-    # Afternoon Session Close: 09:00 to 09:30 UTC -> 2:30 PM to 3:00 PM IST
-    - cron: '0-30/5 9 * * 1-5'
+    # 2. Core market hours (Every 5 mins from 04:00 UTC to 09:59 UTC -> 09:30 IST to 15:25 IST)
+    - cron: '*/5 4-9 * * 1-5'
     
+    # 3. Exact closing tick (10:00 UTC -> 15:30 IST)
+    - cron: '0 10 * * 1-5'
+
+  # Manual trigger for testing
   workflow_dispatch:
 
+# Grant write permissions to the GITHUB_TOKEN for pushing commits
 permissions:
   contents: write
 
@@ -24,7 +25,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Required for the fetch and reset commands below
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -37,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Multi-Asset Quant Engine
+      - name: Run Quant Engine
         run: python main.py
 
       - name: Commit and Push Updated Dashboard
@@ -45,14 +46,21 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
+          # 1. Fetch the absolute latest remote state to catch any changes made while the script was running
           git fetch origin main
+          
+          # 2. Sync local history with the remote, but KEEP the newly generated README and image in the staging area
           git reset --soft origin/main
           
-          git add README.md *.png
+          # 3. Add the files to ensure they are tracked for this specific commit
+          git add README.md trend_prediction.png
           
+          # 4. Commit and push flawlessly without merge conflict anxiety
           if ! git diff --staged --quiet; then
             echo "Changes detected. Committing..."
-            git commit -m "automated multi-asset screener update [skip ci]"
+            git commit -m "automated intraday update [skip ci]"
+            
+            echo "Pushing to repository..."
             git push origin HEAD:main
           else
             echo "No new market data to update. Skipping commit."
