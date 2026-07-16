@@ -6,8 +6,13 @@ import numpy as np
 import mplfinance as mpf
 import requests
 import pandas_ta as ta
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+import warnings
 
+# Suppress Sklearn warnings for clean CI/CD logs
+warnings.filterwarnings("ignore")
 
 def get_stock_data():
     """Pulls 5-minute interval data for NIFTY 50 from Yahoo Finance."""
@@ -22,118 +27,161 @@ def get_stock_data():
         df = ticker.history(period="60d", interval="5m")
         
         if df.empty:
-            raise ValueError("Yahoo Finance returned an empty DataFrame. Rate limit active.")
+            raise ValueError("Yahoo Finance returned an empty DataFrame.")
             
         if df.index.tz is None:
             df.index = df.index.tz_localize('UTC')
             
         return df
     except Exception as e:
-        print(f"CRITICAL ERROR fetching data from yfinance: {e}")
+        print(f"CRITICAL ERROR fetching data: {e}")
         sys.exit(1)
 
 
-def add_technical_indicators(df):
-    """Injects 31 & 5 EMA Strategy parameters and Quant indicators."""
+def add_technical_indicators(df, fast_len, slow_len, rsi_len):
+    """Injects dynamic indicators based on optimizer loop inputs."""
     df = df.copy()
     
-    # Core Strategy Indicators
-    df['EMA_5'] = ta.ema(df['Close'], length=5)
-    df['EMA_31'] = ta.ema(df['Close'], length=31)
+    # Dynamic Moving Averages
+    df['EMA_Fast'] = ta.ema(df['Close'], length=fast_len)
+    df['EMA_Slow'] = ta.ema(df['Close'], length=slow_len)
     
-    # Strategy Rule: Check if current volume is greater than previous 5 candles max
+    # Volume Confirmation (Rolling max of previous 5 candles)
     prev_5_vol_max = df['Volume'].shift(1).rolling(window=5).max()
-    df['Vol_Confirmed'] = df['Volume'] > prev_5_vol_max
+    df['Vol_Confirmed'] = (df['Volume'] > prev_5_vol_max).astype(int)
     
-    # Legacy Quant Features for Model Richness
-    df['RSI'] = ta.rsi(df['Close'], length=14)
+    # Dynamic RSI
+    df['RSI'] = ta.rsi(df['Close'], length=rsi_len)
+    
+    # Volatility Metrics
     df['Dist_to_High'] = df['High'] - df['Close']
     df['Dist_to_Low'] = df['Close'] - df['Low']
-    
-    rolling_high = df['High'].rolling(window=20).max()
-    rolling_low = df['Low'].rolling(window=20).min()
-    diff = rolling_high - rolling_low
-    df['Fib_23_6'] = rolling_high - (diff * 0.236)
     
     return df.dropna()
 
 
-def train_and_predict(df):
-    """Trains the ML engine using core EMA strategy spacing and price metrics."""
-    df = add_technical_indicators(df)
-    df['Target'] = df['Close'].shift(-1)
+def optimize_hyperparameters(df):
+    """Loop Engineering Task: Grid Search for the best timeframes using Logistic Regression."""
+    print("Initiating Grid Search Optimization Loop...")
     
+    # Define the hyperparameter search space
+    fast_ema_options = [3, 5, 7, 9]
+    slow_ema_options = [20, 25, 31, 50]
+    rsi_options = [10, 14, 21]
+    
+    best_accuracy = 0
+    best_params = {'fast': 5, 'slow': 31, 'rsi': 14} # Default fallback
+    
+    # Nested loop to test all combinations
+    for fast in fast_ema_options:
+        for slow in slow_ema_options:
+            if fast >= slow:
+                continue # Fast EMA must be strictly less than Slow EMA
+                
+            for rsi in rsi_options:
+                temp_df = add_technical_indicators(df, fast, slow, rsi)
+                
+                # Target: 1 if next close is strictly higher than current close, else 0
+                temp_df['Target'] = np.where(temp_df['Close'].shift(-1) > temp_df['Close'], 1, 0)
+                temp_df = temp_df.dropna()
+                
+                features = ['Close', 'EMA_Fast', 'EMA_Slow', 'RSI', 'Dist_to_High', 'Dist_to_Low', 'Vol_Confirmed']
+                X = temp_df[features]
+                y = temp_df['Target']
+                
+                # Split data to validate properly and avoid overfitting
+                X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, shuffle=False)
+                
+                model = LogisticRegression(max_iter=500)
+                model.fit(X_train, y_train)
+                
+                preds = model.predict(X_val)
+                acc = accuracy_score(y_val, preds)
+                
+                if acc > best_accuracy:
+                    best_accuracy = acc
+                    best_params = {'fast': fast, 'slow': slow, 'rsi': rsi}
+                    
+    print(f"Optimization Complete. Best Accuracy: {best_accuracy:.2%}")
+    print(f"Optimal Parameters: Fast EMA: {best_params['fast']}, Slow EMA: {best_params['slow']}, RSI: {best_params['rsi']}")
+    
+    return best_params, best_accuracy
+
+
+def train_and_predict(df, best_params):
+    """Trains final Logistic Regression model on entire dataset using optimized parameters."""
+    fast, slow, rsi = best_params['fast'], best_params['slow'], best_params['rsi']
+    df = add_technical_indicators(df, fast, slow, rsi)
+    
+    # Target definition for classification
+    df['Target'] = np.where(df['Close'].shift(-1) > df['Close'], 1, 0)
     train_df = df.dropna()
-    features = ['Close', 'EMA_5', 'EMA_31', 'RSI', 'Dist_to_High', 'Dist_to_Low', 'Fib_23_6']
     
+    features = ['Close', 'EMA_Fast', 'EMA_Slow', 'RSI', 'Dist_to_High', 'Dist_to_Low', 'Vol_Confirmed']
     X = train_df[features]
     y = train_df['Target']
     
-    model = LinearRegression()
-    model.fit(X, y)
+    # Train final model on 100% of available data
+    final_model = LogisticRegression(max_iter=500)
+    final_model.fit(X, y)
     
-    todays_data = df[features].iloc[[-1]]
-    predicted_price = model.predict(todays_data)[0]
+    # Predict the next unclosed interval
+    todays_data = train_df[features].iloc[[-1]]
+    prediction = final_model.predict(todays_data)[0]
+    probability = final_model.predict_proba(todays_data)[0]
     
-    return df, predicted_price
+    # probability[1] is the confidence of an UP move, probability[0] is DOWN
+    confidence = probability[1] if prediction == 1 else probability[0]
+    
+    return train_df, prediction, confidence
 
 
-def update_readme(df, pred_price):
-    """Generates an enterprise-grade dashboard verifying the 31 & 5 EMA rule set."""
+def update_readme(df, prediction, confidence, params, accuracy):
+    """Generates the README incorporating Dynamic Classification Metrics."""
     last_row = df.iloc[-1]
     
     last_price = last_row['Close']
-    ema_5 = last_row['EMA_5']
-    ema_31 = last_row['EMA_31']
-    vol_spike = last_row['Vol_Confirmed']
+    ema_fast = last_row['EMA_Fast']
+    ema_slow = last_row['EMA_Slow']
+    vol_spike = bool(last_row['Vol_Confirmed'])
     rsi = last_row['RSI']
     
-    # Strategy Rule Engine Evaluations
-    macro_trend = "UPTREND" if last_price > ema_31 else "DOWNTREND"
-    ema_alignment = "BULLISH (5 EMA > 31 EMA)" if ema_5 > ema_31 else "BEARISH (5 EMA < 31 EMA)"
+    macro_trend = "UPTREND" if last_price > ema_slow else "DOWNTREND"
+    ema_alignment = f"BULLISH ({params['fast']} EMA > {params['slow']} EMA)" if ema_fast > ema_slow else f"BEARISH ({params['fast']} EMA < {params['slow']} EMA)"
     volume_status = "CONFIRMED SPIKE" if vol_spike else "NORMAL / LOW"
     
-    # Final Action Recommendation
-    if macro_trend == "UPTREND" and ema_5 > ema_31 and vol_spike:
-        strategy_signal = "STRATEGY BUY SIGNAL CONFIRMED (Look for structural break)"
-    elif macro_trend == "DOWNTREND" and ema_5 < ema_31 and vol_spike:
-        strategy_signal = "STRATEGY SELL SIGNAL CONFIRMED (Look for structural break)"
+    # Rule evaluation based on dynamically selected EMAs
+    if macro_trend == "UPTREND" and ema_fast > ema_slow and vol_spike:
+        strategy_signal = "STRATEGY BUY SIGNAL CONFIRMED"
+    elif macro_trend == "DOWNTREND" and ema_fast < ema_slow and vol_spike:
+        strategy_signal = "STRATEGY SELL SIGNAL CONFIRMED"
     else:
-        strategy_signal = "NO SIGNAL / HOLD (Awaiting execution setup)"
+        strategy_signal = "NO SIGNAL / HOLD (Awaiting setup)"
         
-    ml_bias = "BULLISH (UP)" if pred_price > last_price else "BEARISH (DOWN)"
+    ml_bias = "BULLISH (UP)" if prediction == 1 else "BEARISH (DOWN)"
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
     
     lines = [
-        "# NIFTY 50 Intraday Quant & Strategy Engine\n\n",
+        "# NIFTY 50 Intraday Auto-Optimizing Pipeline\n\n",
         "[![Pipeline](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml/badge.svg)](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml)\n",
         "![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)\n",
-        "![Scikit-Learn](https://img.shields.io/badge/ML-Scikit--Learn-orange.svg)\n\n",
-        "This pipeline automates an intraday technical framework running a 31 & 5 EMA strategy verified by rolling volume checks and linear model parameters.\n\n",
+        "![Scikit-Learn Logistic Regression](https://img.shields.io/badge/ML-Logistic_Regression-orange.svg)\n\n",
+        "This system executes a dynamic grid search to find the optimal exponential moving averages for the current market state, passing those weights into a Logistic Regression classification model for intraday forecasting.\n\n",
         "---\n\n",
-        "## Core Execution Status\n",
+        "## Logistic Regression Output\n",
         f"- Last Engine Run: {timestamp}\n",
         f"- NIFTY 50 Current Index: {last_price:,.2f}\n",
-        f"- Model Target Prediction (Next 5-Min): {pred_price:,.2f}\n",
-        f"- Machine Learning Bias: **{ml_bias}**\n\n",
-        "## 31 & 5 EMA Execution Signals\n",
-        f"- Trend Rule (Price vs 31 EMA): **{macro_trend}**\n",
-        f"- Ribbon Alignment (5 EMA vs 31 EMA): **{ema_alignment}**\n",
+        f"- Historical Model Accuracy (Backtest): **{accuracy:.2%}**\n",
+        f"- Directional Prediction (Next 5-Min): **{ml_bias}**\n",
+        f"- Model Confidence: {confidence:.2%}\n\n",
+        "## Dynamic Algorithmic Execution\n",
+        f"- Loop Selected Timeframes: Fast EMA: **{params['fast']}** | Slow EMA: **{params['slow']}** | RSI: **{params['rsi']}**\n",
+        f"- Trend Rule (Price vs Slow EMA): **{macro_trend}**\n",
+        f"- Ribbon Alignment: **{ema_alignment}**\n",
         f"- Volume Rule (Current vs Past 5 Candles): **{volume_status}**\n",
-        f"- Algorithmic Output: **{strategy_signal}**\n\n",
-        "### Secondary Micro Metrics\n",
-        f"- RSI (14-Period): {rsi:.2f}\n",
-        f"- Fast Exponential Moving Average (5 EMA): {ema_5:,.2f}\n",
-        f"- Slow Exponential Moving Average (31 EMA): {ema_31:,.2f}\n\n",
-        "### Live Intraday Chart Architecture\n",
-        "![Stock Trend](./trend_prediction.png)\n\n",
-        "---\n\n",
-        "## Technical Parameters\n\n",
-        "```text\n",
-        "Timeframe: 5-Minute Candle Bars\n",
-        "Primary Overlays: 5 EMA (Blue Track), 31 EMA (Orange Track)\n",
-        "Secondary Indicators: Underlaid Volume Bars\n",
-        "```\n"
+        f"- Active Signal Status: **{strategy_signal}**\n\n",
+        "### Live Execution Chart\n",
+        "![Stock Trend](./trend_prediction.png)\n\n"
     ]
     
     with open("README.md", "w", encoding="utf-8") as f:
@@ -144,31 +192,33 @@ def main():
     print("Fetching NIFTY 5-minute data...")
     df = get_stock_data()
     
-    print("Executing Feature Matrix & Strategy Models...")
-    df_results, predicted_price = train_and_predict(df)
+    # 1. Loop Engineering Task
+    best_params, backtest_accuracy = optimize_hyperparameters(df)
     
-    print("Compiling Production Candlestick Visualizations...")
-    plot_df = df_results.tail(120)  # Isolating 120 candles (~1-2 trading sessions) for clean scaling
+    # 2. Train Logistic Regression with Optimal Weights
+    print("Executing Logistic Classification...")
+    df_results, predicted_direction, prediction_confidence = train_and_predict(df, best_params)
     
-    # Formulate overlay properties for the 5 and 31 EMA tracks
+    print("Compiling Visualization...")
+    plot_df = df_results.tail(120) 
+    
     ema_plots = [
-        mpf.make_addplot(plot_df['EMA_5'], color='#29b6f6', width=1.0),   # Cyan/Blue line for fast tracking
-        mpf.make_addplot(plot_df['EMA_31'], color='#f57c00', width=1.2)  # Amber/Orange line for slow tracking
+        mpf.make_addplot(plot_df['EMA_Fast'], color='#29b6f6', width=1.0),
+        mpf.make_addplot(plot_df['EMA_Slow'], color='#f57c00', width=1.2)
     ]
     
-    # Execute the chart rendering block complete with a volume subplot panel
     mpf.plot(plot_df, 
              type='candle', 
              style='yahoo', 
              addplot=ema_plots,
              volume=True,
-             title="NIFTY 50 Intraday Execution Panel (5m)",
+             title=f"NIFTY 50 Intraday - Opt. {best_params['fast']}/{best_params['slow']} EMA Strategy",
              ylabel="Index Points",
-             ylabel_lower="Volume Traded",
+             ylabel_lower="Volume",
              savefig=dict(fname='trend_prediction.png', dpi=300, bbox_inches='tight'))
     
-    print("Pushing data metrics to dashboard profile...")
-    update_readme(df_results, predicted_price)
+    print("Pushing updated telemetry to dashboard...")
+    update_readme(df_results, predicted_direction, prediction_confidence, best_params, backtest_accuracy)
     print("Pipeline compilation executed cleanly!")
 
 
