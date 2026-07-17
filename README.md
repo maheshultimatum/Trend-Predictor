@@ -1,4 +1,4 @@
-# NIFTY 50 Intraday Quant & Strategy Engine
+# NIFTY 50 Intraday Engine
 
 [![Pipeline](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml/badge.svg)](https://github.com/maheshultimatum/Trend-Predictor/actions/workflows/pipeline.yml)
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)
