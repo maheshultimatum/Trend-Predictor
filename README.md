@@ -9,9 +9,9 @@ This pipeline automates an intraday technical framework running a 31 & 5 EMA str
 ---
 
 ## Core Execution Status
-- Last Engine Run: 2026-08-11 09:34:13 UTC
-- NIFTY 50 Current Index: 24,462.50
-- Model Target Prediction (Next 5-Min): 24,462.17
+- Last Engine Run: 2026-08-11 10:29:51 UTC
+- NIFTY 50 Current Index: 24,471.70
+- Model Target Prediction (Next 5-Min): 24,470.25
 - Machine Learning Bias: **BEARISH (DOWN)**
 
 ## 31 & 5 EMA Execution Signals
@@ -21,9 +21,9 @@ This pipeline automates an intraday technical framework running a 31 & 5 EMA str
 - Algorithmic Output: **NO SIGNAL / HOLD (Awaiting execution setup)**
 
 ### Secondary Micro Metrics
-- RSI (14-Period): 55.04
-- Fast Exponential Moving Average (5 EMA): 24,458.05
-- Slow Exponential Moving Average (31 EMA): 24,455.20
+- RSI (14-Period): 58.64
+- Fast Exponential Moving Average (5 EMA): 24,459.11
+- Slow Exponential Moving Average (31 EMA): 24,455.81
 
 ### Live Intraday Chart Architecture
 ![Stock Trend](./trend_prediction.png)
