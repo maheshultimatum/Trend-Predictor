@@ -9,7 +9,7 @@ This pipeline automates an intraday technical framework running a 31 & 5 EMA str
 ---
 
 ## Core Execution Status
-- Last Engine Run: 2026-10-05 10:50:50 UTC
+- Last Engine Run: 2026-10-05 11:13:27 UTC
 - NIFTY 50 Current Index: 22,555.75
 - Model Target Prediction (Next 5-Min): 22,552.86
 - Machine Learning Bias: **BEARISH (DOWN)**
